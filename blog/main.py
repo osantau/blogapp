@@ -1,7 +1,7 @@
 from fastapi import FastAPI, Form, Depends, Response, status, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from datetime import date
-from typing import Optional
+from typing import Optional, List
 import uvicorn
 from sqlalchemy.orm import Session
 from . import schemas, models
@@ -29,7 +29,7 @@ app.add_middleware(
 )
 
 
-@app.get("/blog")
+@app.get("/blog", response_model=List[schemas.ShowBlog])
 def index(
     limit=10,
     published: bool = True,
@@ -52,7 +52,7 @@ def unpublished():
     return {"data": "all unpublished blogs"}
 
 
-@app.get("/blog/{id}", status_code=status.HTTP_200_OK)
+@app.get("/blog/{id}", status_code=status.HTTP_200_OK, response_model=schemas.ShowBlog)
 def show(id: int, response: Response, db: Session = Depends(get_db)):
     blog = db.query(models.Blog).filter(models.Blog.id == id).first()
     if not blog:
@@ -103,3 +103,11 @@ def udpate_blog(id:int,request: schemas.Blog, db: Session = Depends(get_db)):
     
 # if __name__ == "__main__":
 #     uvicorn.run(app, host="127.0.0.1", port=9000)
+
+@app.post("/user")
+def create_user(request: schemas.User,db: Session = Depends(get_db)):
+    new_user = models.User(name=request.name, email=request.email, password=request.password)
+    db.add(new_user)
+    db.commit()
+    db.refresh(new_user)
+    return new_user
