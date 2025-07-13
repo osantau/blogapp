@@ -5,7 +5,9 @@ from typing import Optional, List
 import uvicorn
 from sqlalchemy.orm import Session
 from . import schemas, models
+from .hashing import Hash
 from .database import engine, SessionLocal
+from passlib.context import CryptContext
 
 models.Base.metadata.create_all(bind=engine)
 
@@ -105,8 +107,8 @@ def udpate_blog(id:int,request: schemas.Blog, db: Session = Depends(get_db)):
 #     uvicorn.run(app, host="127.0.0.1", port=9000)
 
 @app.post("/user")
-def create_user(request: schemas.User,db: Session = Depends(get_db)):
-    new_user = models.User(name=request.name, email=request.email, password=request.password)
+def create_user(request: schemas.User,db: Session = Depends(get_db)):   
+    new_user = models.User(name=request.name, email=request.email, password=Hash.bcrypt(request.password))
     db.add(new_user)
     db.commit()
     db.refresh(new_user)
