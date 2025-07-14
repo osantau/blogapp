@@ -4,8 +4,10 @@ from typing import Optional, List
 from blog import schemas
 from blog import database
 from blog import models
+from blog.repository import blog
 
-router = APIRouter(prefix="/blog", tags=["blogs"])
+
+router = APIRouter(prefix="/blog", tags=["Blogs"])
 
 get_db = database.get_db
 
@@ -17,14 +19,7 @@ def all(
     sort: Optional[str] = None,
     db: Session = Depends(database.get_db),
 ):
-    blogs = db.query(models.Blog).all()
-    # only get 10 published blogs
-    # if published:
-
-    #     return {"data": f"{limit} published blogs from the db"}
-    # else:
-    #     return {"data": f"{limit} blogs from db"}
-    return blogs
+    return blog.get_all(db)
 
 
 @router.get("/unpublished")
@@ -34,18 +29,10 @@ def unpublished():
 
 @router.get("/{id}", status_code=status.HTTP_200_OK, response_model=schemas.ShowBlog)
 def show(id: int, response: Response, db: Session = Depends(get_db)):
-    blog = db.query(models.Blog).filter(models.Blog.id == id).first()
-    if not blog:
-        # response.status_code = status.HTTP_404_NOT_FOUND
-        # return {"detail": f"Blog with id {id} is not present in database"}
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail=f"Blog with id {id} was not found!",
-        )
-    return blog
+    return blog.show(id, db)
 
 
-@router.get("/{id}/comments", tags=["blogs"])
+@router.get("/{id}/comments")
 def comments(id: int, limit: int = 10):
     return limit
     return {"data": {"1", "2"}}
@@ -53,36 +40,14 @@ def comments(id: int, limit: int = 10):
 
 @router.post("/", status_code=status.HTTP_201_CREATED)
 def create_blog(request: schemas.Blog, db: Session = Depends(get_db)):
-    new_blog = models.Blog(title=request.title, body=request.body, user_id=1)
-    db.add(new_blog)
-    db.commit()
-    db.refresh(new_blog)
-    return new_blog
+    return blog.create(request, db)
 
 
 @router.delete("/{id}", status_code=status.HTTP_204_NO_CONTENT)
 def destroy(id: int, db: Session = Depends(get_db)):
-    blog = db.query(models.Blog).filter(models.Blog.id == id)
-    if not blog.first():
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail=f"The blog with id {id} not exists !",
-        )
-
-    blog.delete(synchronize_session=False)
-    db.commit()
-    return "done"
+    return blog.destroy(id, db)
 
 
 @router.put("/{id}", status_code=status.HTTP_202_ACCEPTED)
 def udpate_blog(id: int, request: schemas.Blog, db: Session = Depends(get_db)):
-    blog = db.query(models.Blog).filter(models.Blog.id == id)
-    if not blog.first():
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail=f"The blog with id {id} not exists !",
-        )
-
-    blog.update({"title": request.title, "body": request.body})
-    db.commit()
-    return "updated successfully"
+    return blog.udpate(id, db)
