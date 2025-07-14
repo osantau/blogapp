@@ -5,7 +5,7 @@ from sqlalchemy.orm import Session
 
 get_db = database.get_db
 
-router = APIRouter(prefix="/authenticate", tags=["Authentication"])
+router = APIRouter(tags=["Authentication"])
 
 @router.post("/login")
 def login(request:schemas.Login, db:Session = Depends(get_db)):

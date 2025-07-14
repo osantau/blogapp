@@ -5,7 +5,7 @@ from blog import schemas
 from blog import database
 from blog import models
 from blog.repository import blog
-
+from blog.oauth2 import get_current_user
 
 router = APIRouter(prefix="/blog", tags=["Blogs"])
 
@@ -18,6 +18,7 @@ def all(
     published: bool = True,
     sort: Optional[str] = None,
     db: Session = Depends(database.get_db),
+    get_current_user: schemas.User = Depends(get_current_user)
 ):
     return blog.get_all(db)
 
