@@ -21,3 +21,13 @@ def get_user(id: int, db: Session):
             detail=f"User with {id} was not found!",
         )
     return user
+
+def login(request:schemas.Login, db:Session):
+    user = db.query(models.User).filter(models.User.email==request.username).first()
+    if not user:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND,detail=f"Invliad credentials!")
+    
+    if not hashing.Hash.verify(user.password,request.password):
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND,detail=f"Incorrect password!")
+    # generate jwt token and return it
+    return user
