@@ -1,6 +1,8 @@
+from datetime import timedelta
 from sqlalchemy.orm import Session
 from blog import schemas, models, hashing
 from fastapi import HTTPException, status
+import blog.jwt_token
 
 def create(request: schemas.User, db: Session):
     new_user = models.User(
@@ -30,4 +32,9 @@ def login(request:schemas.Login, db:Session):
     if not hashing.Hash.verify(user.password,request.password):
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND,detail=f"Incorrect password!")
     # generate jwt token and return it
-    return user
+    access_token_expires = timedelta(minutes=blog.jwt_token.ACCESS_TOKEN_EXPIRE_MINUTES)
+    access_token = blog.jwt_token.create_access_token(
+        data={"sub": user.username}, expires_delta=access_token_expires
+    )
+    
+    return access_token

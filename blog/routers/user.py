@@ -6,6 +6,7 @@ from blog import hashing
 from sqlalchemy.orm import Session
 from blog.repository import user
 
+
 router = APIRouter(prefix="/user", tags=["Users"])
 get_db = database.get_db
 
