@@ -25,7 +25,7 @@ def get_user(id: int, db: Session):
     return user
 
 def login(request:schemas.Login, db:Session):
-    user = db.query(models.User).filter(models.User.email==request.username).first()
+    user = db.query(models.User).filter(models.User.email==request.username).first()    
     if not user:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND,detail=f"Invliad credentials!")
     
@@ -34,7 +34,7 @@ def login(request:schemas.Login, db:Session):
     # generate jwt token and return it
     access_token_expires = timedelta(minutes=blog.jwt_token.ACCESS_TOKEN_EXPIRE_MINUTES)
     access_token = blog.jwt_token.create_access_token(
-        data={"sub": user.username}, expires_delta=access_token_expires
+        data={"sub": user.email}, expires_delta=access_token_expires
     )
     
-    return access_token
+    return {"access_token": access_token, "token_type": "bearer"}

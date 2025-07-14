@@ -3,7 +3,7 @@ from passlib.context import CryptContext
 from jose import JWTError, jwt
 
 SECRET_KEY = "85a2a52021a90a076aa0e728fd6f892954944e25a4805da6d4f9187c8f57a107"
-ALGORITHM = "H256"
+ALGORITHM = "HS256"
 ACCESS_TOKEN_EXPIRE_MINUTES = 30
 
 
