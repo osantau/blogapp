@@ -26,18 +26,12 @@ def get_user(id: int, db: Session):
             detail=f"User with {id} was not found!",
         )
     return user
-
-def login(request:OAuth2PasswordRequestForm=Depends(), db:Session=Depends(database.get_db)):
-    user = db.query(models.User).filter(models.User.email==request.username).first()    
+   
+def get_user_by_username(username:str, db: Session):
+    user = db.query(models.User).filter(models.User.email == username).first()
     if not user:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND,detail=f"Invliad credentials!")
-    
-    if not hashing.Hash.verify(user.password,request.password):
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND,detail=f"Incorrect password!")
-    # generate jwt token and return it
-    access_token_expires = timedelta(minutes=blog.jwt_token.ACCESS_TOKEN_EXPIRE_MINUTES)
-    access_token = blog.jwt_token.create_access_token(
-        data={"sub": user.email}, expires_delta=access_token_expires
-    )
-    
-    return {"access_token": access_token, "token_type": "bearer"}
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"User with username {username} was not found!",
+        )
+    return user

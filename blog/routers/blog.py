@@ -5,7 +5,7 @@ from blog import schemas
 from blog import database
 from blog import models
 from blog.repository import blog
-from blog.oauth2 import get_current_user
+from blog.oauth2 import get_current_user, get_current_active_user
 
 router = APIRouter(prefix="/blog", tags=["Blogs"])
 
@@ -18,37 +18,39 @@ def all(
     published: bool = True,
     sort: Optional[str] = None,
     db: Session = Depends(database.get_db),
-    get_current_user: schemas.User = Depends(get_current_user)
+    current_user: schemas.User = Depends(get_current_user)
 ):
     return blog.get_all(db)
 
 
 @router.get("/unpublished")
-def unpublished():
+def unpublished(current_user: schemas.User = Depends(get_current_user)):
     return {"data": "all unpublished blogs"}
 
 
 @router.get("/{id}", status_code=status.HTTP_200_OK, response_model=schemas.ShowBlog)
-def show(id: int, response: Response, db: Session = Depends(get_db)):
+def show(id: int, response: Response, db: Session = Depends(get_db),current_user: schemas.User = Depends(get_current_user)):
     return blog.show(id, db)
 
 
 @router.get("/{id}/comments")
-def comments(id: int, limit: int = 10):
+def comments(id: int, limit: int = 10,current_user: schemas.User = Depends(get_current_user)):
     return limit
     return {"data": {"1", "2"}}
 
 
 @router.post("/", status_code=status.HTTP_201_CREATED)
-def create_blog(request: schemas.Blog, db: Session = Depends(get_db)):
-    return blog.create(request, db)
+def create_blog(request: schemas.Blog, db: Session = Depends(get_db),current_user: schemas.User = Depends(get_current_user)):
+    active_user = get_current_active_user(current_user)
+    print(f"{active_user}")
+    return blog.create(request, db,current_user)
 
 
 @router.delete("/{id}", status_code=status.HTTP_204_NO_CONTENT)
-def destroy(id: int, db: Session = Depends(get_db)):
+def destroy(id: int, db: Session = Depends(get_db),current_user: schemas.User = Depends(get_current_user)):
     return blog.destroy(id, db)
 
 
 @router.put("/{id}", status_code=status.HTTP_202_ACCEPTED)
-def udpate_blog(id: int, request: schemas.Blog, db: Session = Depends(get_db)):
+def udpate_blog(id: int, request: schemas.Blog, db: Session = Depends(get_db),current_user: schemas.User = Depends(get_current_user)):
     return blog.udpate(id, db)
